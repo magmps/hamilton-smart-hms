@@ -1,0 +1,18 @@
+{
+  "name": "hamilton-international-hotel-smart-hms",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Smart Hotel Management System web application and REST API with Supabase cloud persistence for Hamilton International Hotel, Dire Dawa, Ethiopia",
+  "main": "backend/api-gateway/src/server.js",
+  "scripts": {
+    "start": "node backend/api-gateway/src/server.js",
+    "dev": "node backend/api-gateway/src/server.js",
+    "test": "node tests/api-smoke.js",
+    "supabase:setup": "bash scripts/setup-supabase-termux.sh",
+    "supabase:check": "node scripts/check-supabase.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

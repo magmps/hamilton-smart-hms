@@ -1,0 +1,13 @@
+Hamilton International Hotel HMS — Supabase Cloud Update v1.1.0
+
+Added:
+- Secure backend-only Supabase Data REST connection
+- New sb_secret_* and legacy service_role key support
+- Automatic remote pull at startup
+- Automatic queued push after every HMS data change
+- Local JSON fallback when internet/Supabase is unavailable
+- Supabase health status in /api/v1/health
+- Termux interactive setup script
+- SQL migration and setup documentation
+
+Never expose SUPABASE_SECRET_KEY in frontend code or GitHub.

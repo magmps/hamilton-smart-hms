@@ -1,0 +1,13 @@
+services:
+  hamilton-hms:
+    image: node:20-alpine
+    working_dir: /app
+    command: node backend/api-gateway/src/server.js
+    volumes:
+      - ./:/app
+    environment:
+      PORT: 8080
+      HMS_JWT_SECRET: change-this-secret-before-production
+    ports:
+      - "8080:8080"
+    restart: unless-stopped

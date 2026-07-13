@@ -1,0 +1,16 @@
+Hamilton International Hotel — Logo Position Fix v3
+
+Changes:
+- Replaced the hotel mark with the new compact navy-and-gold HIH emblem.
+- Restored the logo to the original compact header/sidebar position.
+- Prevented the logo from expanding over dashboard content.
+- Added fixed image dimensions and mobile overflow protection.
+- Updated the service-worker cache to v3 so old CSS/logo files are removed.
+
+Install in Termux:
+1. Stop the server with Ctrl + C.
+2. cd ~
+3. unzip -o ~/storage/downloads/Hamilton_International_Hotel_HMS_Logo_Position_Fix.zip
+4. cd ~/hamilton-smart-hms
+5. npm start
+6. Open http://localhost:8080/app.html

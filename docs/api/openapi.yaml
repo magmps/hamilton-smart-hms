@@ -1,0 +1,361 @@
+openapi: 3.0.3
+info:
+  title: Hamilton International Hotel Smart HMS API
+  version: 1.0.0
+  description: REST API for Hamilton International Hotel, Dire Dawa, Ethiopia.
+servers:
+  - url: http://localhost:8080/api/v1
+security:
+  - bearerAuth: []
+tags:
+  - name: Health
+  - name: Auth
+  - name: Public
+  - name: Dashboard
+  - name: Reservations
+  - name: Front Desk
+  - name: Rooms
+  - name: Housekeeping
+  - name: Guests
+  - name: Folios
+  - name: Food and Beverage
+  - name: Revenue
+  - name: Reports
+  - name: Administration
+  - name: Integrations
+  - name: Notifications
+paths:
+  /health:
+    get:
+      tags: [Health]
+      security: []
+      summary: Service health
+      responses:
+        '200': {description: Healthy}
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Sign in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: {type: string, format: email}
+                password: {type: string, format: password}
+      responses:
+        '200': {description: Signed in}
+        '401': {description: Invalid credentials}
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Current user
+      responses:
+        '200': {description: Current user profile}
+  /public/availability:
+    get:
+      tags: [Public]
+      security: []
+      parameters:
+        - {in: query, name: check_in, schema: {type: string, format: date}}
+        - {in: query, name: check_out, schema: {type: string, format: date}}
+      responses:
+        '200': {description: Public room-type availability}
+  /public/reservations:
+    post:
+      tags: [Public]
+      security: []
+      summary: Create public reservation request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicReservationRequest'
+      responses:
+        '201': {description: Reservation created}
+  /dashboard/summary:
+    get:
+      tags: [Dashboard]
+      responses:
+        '200': {description: KPIs, arrivals, alerts and room status}
+  /availability:
+    get:
+      tags: [Reservations]
+      parameters:
+        - {in: query, name: check_in, schema: {type: string, format: date}}
+        - {in: query, name: check_out, schema: {type: string, format: date}}
+        - {in: query, name: room_type_id, schema: {type: string}}
+      responses:
+        '200': {description: Available physical rooms}
+  /reservations:
+    get:
+      tags: [Reservations]
+      parameters:
+        - {in: query, name: status, schema: {type: string}}
+        - {in: query, name: q, schema: {type: string}}
+      responses:
+        '200': {description: Reservation list}
+    post:
+      tags: [Reservations]
+      summary: Create staff reservation
+      responses:
+        '201': {description: Reservation created}
+  /reservations/{id}:
+    get:
+      tags: [Reservations]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Reservation}
+    patch:
+      tags: [Reservations]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Reservation updated}
+  /reservations/{id}/cancel:
+    post:
+      tags: [Reservations]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Reservation cancelled}
+  /frontdesk/arrivals:
+    get:
+      tags: [Front Desk]
+      responses:
+        '200': {description: Arrival queue}
+  /frontdesk/{id}/check-in:
+    post:
+      tags: [Front Desk]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Guest checked in and folio opened}
+  /frontdesk/{id}/room-move:
+    post:
+      tags: [Front Desk]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Room moved and cleaning task created}
+  /frontdesk/{id}/check-out:
+    post:
+      tags: [Front Desk]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Checkout completed}
+        '409': {description: Outstanding balance}
+  /rooms:
+    get:
+      tags: [Rooms]
+      responses:
+        '200': {description: Room board}
+    post:
+      tags: [Rooms]
+      responses:
+        '201': {description: Room created}
+  /rooms/{id}/status:
+    patch:
+      tags: [Rooms]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Room status updated}
+  /rooms/housekeeping/tasks:
+    get:
+      tags: [Housekeeping]
+      responses:
+        '200': {description: Task list}
+    post:
+      tags: [Housekeeping]
+      responses:
+        '201': {description: Task created}
+  /rooms/housekeeping/tasks/{id}:
+    patch:
+      tags: [Housekeeping]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Task updated}
+  /guests:
+    get:
+      tags: [Guests]
+      responses:
+        '200': {description: Guest profiles}
+    post:
+      tags: [Guests]
+      responses:
+        '201': {description: Guest created}
+  /guests/{id}:
+    patch:
+      tags: [Guests]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Guest updated}
+  /folios:
+    get:
+      tags: [Folios]
+      responses:
+        '200': {description: Folio list}
+  /folios/{id}:
+    get:
+      tags: [Folios]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Folio detail}
+  /folios/{id}/charges:
+    post:
+      tags: [Folios]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '201': {description: Charge posted}
+  /folios/{id}/payments:
+    post:
+      tags: [Folios]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '201': {description: Payment posted}
+  /folios/{id}/refunds:
+    post:
+      tags: [Folios]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '201': {description: Refund posted}
+  /folios/{id}/invoice:
+    post:
+      tags: [Folios]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Invoice issued}
+  /fb/menu:
+    get:
+      tags: [Food and Beverage]
+      responses:
+        '200': {description: Menu}
+  /fb/orders:
+    get:
+      tags: [Food and Beverage]
+      responses:
+        '200': {description: Order list}
+    post:
+      tags: [Food and Beverage]
+      responses:
+        '201': {description: Order created}
+  /fb/orders/{id}/status:
+    patch:
+      tags: [Food and Beverage]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Order status updated}
+  /fb/orders/{id}/settle:
+    post:
+      tags: [Food and Beverage]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Order settled}
+  /revenue/overview:
+    get:
+      tags: [Revenue]
+      responses:
+        '200': {description: ADR, RevPAR, forecast and recommendations}
+  /revenue/rates:
+    get:
+      tags: [Revenue]
+      responses:
+        '200': {description: Rate plans}
+  /revenue/rates/{id}:
+    put:
+      tags: [Revenue]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: Rate updated}
+  /reports/{type}:
+    get:
+      tags: [Reports]
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema: {type: string, enum: [occupancy, finance, housekeeping, guest, audit]}
+      responses:
+        '200': {description: Generated report}
+  /admin/users:
+    get:
+      tags: [Administration]
+      responses:
+        '200': {description: Staff users}
+    post:
+      tags: [Administration]
+      responses:
+        '201': {description: Staff user created}
+  /admin/users/{id}:
+    patch:
+      tags: [Administration]
+      parameters: [{$ref: '#/components/parameters/Id'}]
+      responses:
+        '200': {description: User updated}
+  /admin/audit:
+    get:
+      tags: [Administration]
+      responses:
+        '200': {description: Audit trail}
+  /admin/settings:
+    get:
+      tags: [Administration]
+      responses:
+        '200': {description: Property settings}
+    patch:
+      tags: [Administration]
+      responses:
+        '200': {description: Settings updated}
+  /integrations/status:
+    get:
+      tags: [Integrations]
+      responses:
+        '200': {description: Integration status}
+  /integrations/webhooks/{provider}:
+    post:
+      tags: [Integrations]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema: {type: string}
+      responses:
+        '202': {description: Webhook accepted}
+  /notifications:
+    get:
+      tags: [Notifications]
+      responses:
+        '200': {description: Notification queue}
+  /notifications/send:
+    post:
+      tags: [Notifications]
+      responses:
+        '202': {description: Notification queued}
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: {type: string}
+  schemas:
+    PublicReservationRequest:
+      type: object
+      required: [first_name, last_name, phone, check_in, check_out, room_type_id]
+      properties:
+        first_name: {type: string}
+        last_name: {type: string}
+        phone: {type: string}
+        email: {type: string, format: email}
+        check_in: {type: string, format: date}
+        check_out: {type: string, format: date}
+        room_type_id: {type: string}
+        adults: {type: integer, minimum: 1}
+        children: {type: integer, minimum: 0}
+        notes: {type: string}
