@@ -10,7 +10,7 @@ function errorView(err){main.innerHTML=`<div class="card"><div class="empty"><di
 function openModal(title,body,actions=''){document.getElementById('modalTitle').textContent=title;document.getElementById('modalBody').innerHTML=body;document.getElementById('modalActions').innerHTML=actions;document.getElementById('modalBackdrop').classList.remove('hidden')}
 function closeModal(){document.getElementById('modalBackdrop').classList.add('hidden')}
 document.getElementById('modalClose').onclick=closeModal;document.getElementById('modalBackdrop').addEventListener('click',e=>{if(e.target.id==='modalBackdrop')closeModal()});
-function setPage(view){state.view=view;const [title,sub]=titles[view];document.getElementById('pageTitle').textContent=title;document.getElementById('pageSubtitle').textContent=sub;document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===view));document.getElementById('sidebar').classList.remove('open')}
+function setPage(view){state.view=view;const [title,sub]=titles[view];document.getElementById('pageTitle').textContent=title;document.getElementById('pageSubtitle').textContent=sub;document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===view));setMobileMenu(false)}
 async function renderView(view){setPage(view);loading();try{await ({dashboard:renderDashboard,reservations:renderReservations,frontdesk:renderFrontdesk,rooms:renderRooms,housekeeping:renderHousekeeping,guests:renderGuests,fb:renderFB,finance:renderFinance,revenue:renderRevenue,reports:renderReports,admin:renderAdmin}[view]||renderDashboard)()}catch(err){console.error(err);errorView(err)}}
 
 async function renderDashboard(){const [d,r]=await Promise.all([HMS.get('/api/v1/dashboard/summary'),HMS.get('/api/v1/revenue/overview')]);const k=d.kpis;main.innerHTML=pageHead('Good operations start with one view',`${d.property.name} · ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`,`<button class="btn btn-soft" data-go="frontdesk">View arrivals</button><button class="btn btn-primary" id="dashNew">＋ New reservation</button>`)+`
@@ -64,5 +64,22 @@ async function renderAdmin(){const canManage=['admin','manager'].includes(state.
 function showUserModal(){openModal('Create staff user',`<form id="userForm" class="form-grid"><div class="field"><label>Full name</label><input class="input" name="name" required></div><div class="field"><label>Email</label><input class="input" name="email" type="email" required></div><div class="field"><label>Department</label><input class="input" name="department"></div><div class="field"><label>Role</label><select class="select" name="role"><option>frontdesk</option><option>housekeeping</option><option>finance</option><option>fb</option><option>manager</option><option>admin</option></select></div><div class="field full-span"><label>Temporary password</label><input class="input" name="password" type="password" minlength="8" required></div></form>`,`<button class="btn btn-soft" id="modalCancel">Cancel</button><button class="btn btn-primary" id="saveUser">Create user</button>`);document.getElementById('modalCancel').onclick=closeModal;document.getElementById('saveUser').onclick=async()=>{const v=Object.fromEntries(new FormData(document.getElementById('userForm')).entries());try{await HMS.post('/api/v1/admin/users',v);toast('Staff user created');closeModal();renderView('admin')}catch(e){toast(e.message,'error')}}}
 
 function bindGo(){document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>renderView(b.dataset.go))}
-document.querySelectorAll('.nav-item').forEach(n=>n.onclick=()=>renderView(n.dataset.view));document.getElementById('menuBtn').onclick=()=>document.getElementById('sidebar').classList.toggle('open');document.getElementById('refreshBtn').onclick=()=>renderView(state.view);document.getElementById('quickReservationBtn').onclick=showReservationModal;document.getElementById('logoutBtn').onclick=()=>{localStorage.removeItem('hms_token');location.href='/login.html'};document.getElementById('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){renderView('reservations').then(()=>renderReservations(e.target.value))}});
+const sidebar=document.getElementById('sidebar');
+const menuBtn=document.getElementById('menuBtn');
+const sidebarOverlay=document.getElementById('sidebarOverlay');
+function setMobileMenu(open){
+  const shouldOpen=Boolean(open)&&window.matchMedia('(max-width:900px)').matches;
+  sidebar.classList.toggle('open',shouldOpen);
+  sidebarOverlay.classList.toggle('open',shouldOpen);
+  document.body.classList.toggle('menu-open',shouldOpen);
+  menuBtn.setAttribute('aria-expanded',String(shouldOpen));
+  menuBtn.setAttribute('aria-label',shouldOpen?'Close navigation menu':'Open navigation menu');
+  menuBtn.textContent=shouldOpen?'×':'☰';
+}
+document.querySelectorAll('.nav-item').forEach(n=>n.onclick=()=>{setMobileMenu(false);renderView(n.dataset.view)});
+menuBtn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setMobileMenu(!sidebar.classList.contains('open'))});
+sidebarOverlay.addEventListener('click',()=>setMobileMenu(false));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')setMobileMenu(false)});
+window.addEventListener('resize',()=>{if(window.innerWidth>900)setMobileMenu(false)});
+document.getElementById('refreshBtn').onclick=()=>renderView(state.view);document.getElementById('quickReservationBtn').onclick=showReservationModal;document.getElementById('logoutBtn').onclick=()=>{localStorage.removeItem('hms_token');location.href='/login.html'};document.getElementById('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){renderView('reservations').then(()=>renderReservations(e.target.value))}});
 (async function init(){if(!HMS.token){location.href='/login.html';return}try{const data=await HMS.get('/api/v1/auth/me');state.me=data.user;document.getElementById('userName').textContent=data.user.name;document.getElementById('userRole').textContent=`${data.user.role} · ${data.user.department||''}`;document.getElementById('userAvatar').textContent=initials(data.user.name);await renderView('dashboard');if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(()=>{})}catch(e){localStorage.removeItem('hms_token');location.href='/login.html'}})();

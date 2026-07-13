@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102a43"><title>Smart HMS | Hamilton International Hotel</title><link rel="icon" type="image/png" href="/assets/hamilton-logo-192.png?v=3"><link rel="stylesheet" href="/css/styles.css?v=3"><link rel="manifest" href="/manifest.webmanifest"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102a43"><title>Smart HMS | Hamilton International Hotel</title><link rel="icon" type="image/png" href="/assets/hamilton-logo-192.png?v=4"><link rel="stylesheet" href="/css/styles.css?v=4"><link rel="manifest" href="/manifest.webmanifest"></head>
 <body>
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
-    <div class="sidebar-head"><a href="/app.html" class="brand"><img class="brand-logo" width="48" height="48" style="width:48px;height:48px;max-width:48px;max-height:48px;object-fit:contain;display:block" src="/assets/hamilton-logo-mark.png?v=3" alt="Hamilton International Hotel logo"><span><strong>Hamilton International</strong><span>Smart HMS</span></span></a></div>
+    <div class="sidebar-head"><a href="/app.html" class="brand"><img class="brand-logo" width="48" height="48" style="width:48px;height:48px;max-width:48px;max-height:48px;object-fit:contain;display:block" src="/assets/hamilton-logo-mark.png?v=4" alt="Hamilton International Hotel logo"><span><strong>Hamilton International</strong><span>Smart HMS</span></span></a></div>
     <nav class="nav-list" id="navList">
       <div class="nav-label">Command center</div>
       <button class="nav-item active" data-view="dashboard"><span class="nav-icon">⌂</span>Dashboard</button>
@@ -23,12 +23,13 @@
     </nav>
     <div class="sidebar-foot"><div class="user-card"><div class="avatar" id="userAvatar">H</div><div style="min-width:0"><b id="userName">Loading...</b><span id="userRole">Staff</span></div><button class="icon-btn" id="logoutBtn" title="Sign out" style="margin-left:auto;background:rgba(255,255,255,.08);border:0;color:#fff">↪</button></div></div>
   </aside>
+  <button class="sidebar-overlay" id="sidebarOverlay" type="button" aria-label="Close navigation menu" tabindex="-1"></button>
   <section class="main-shell">
-    <header class="topbar"><div class="top-left"><button class="icon-btn mobile-menu" id="menuBtn">☰</button><img class="topbar-logo" width="36" height="36" style="width:36px;height:36px;max-width:36px;max-height:36px;object-fit:contain;display:block;flex:0 0 36px" src="/assets/hamilton-logo-mark.png?v=3" alt="Hamilton International Hotel"><div><h1 id="pageTitle">Executive Dashboard</h1><p id="pageSubtitle">Hamilton International Hotel · Dire Dawa, Ethiopia</p></div></div><div class="top-actions"><div class="search-box">⌕<input id="globalSearch" placeholder="Search guests or reservations..."></div><button class="icon-btn" id="refreshBtn" title="Refresh">↻</button><button class="btn btn-primary" id="quickReservationBtn">＋ New reservation</button></div></header>
+    <header class="topbar"><div class="top-left"><button class="icon-btn mobile-menu" id="menuBtn" type="button" aria-label="Open navigation menu" aria-controls="sidebar" aria-expanded="false">☰</button><img class="topbar-logo" width="36" height="36" style="width:36px;height:36px;max-width:36px;max-height:36px;object-fit:contain;display:block;flex:0 0 36px" src="/assets/hamilton-logo-mark.png?v=4" alt="Hamilton International Hotel"><div><h1 id="pageTitle">Executive Dashboard</h1><p id="pageSubtitle">Hamilton International Hotel · Dire Dawa, Ethiopia</p></div></div><div class="top-actions"><div class="search-box">⌕<input id="globalSearch" placeholder="Search guests or reservations..."></div><button class="icon-btn" id="refreshBtn" title="Refresh">↻</button><button class="btn btn-primary" id="quickReservationBtn">＋ New reservation</button></div></header>
     <main class="main-content" id="mainContent"><div class="loading"><div class="spinner"></div></div></main>
   </section>
 </div>
 <div class="modal-backdrop hidden" id="modalBackdrop"><div class="modal"><div class="modal-head"><h3 id="modalTitle">Action</h3><button class="icon-btn" id="modalClose">×</button></div><div class="modal-body" id="modalBody"></div><div class="modal-actions" id="modalActions"></div></div></div>
 <div class="toast-wrap" id="toasts"></div>
-<script src="/js/api.js"></script><script src="/js/app.js"></script>
+<script src="/js/api.js?v=4"></script><script src="/js/app.js?v=4"></script>
 </body></html>

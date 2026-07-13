@@ -1,0 +1,8 @@
+Hamilton International Hotel Smart HMS — Mobile Slide Menu Fix v4
+
+Changes:
+- Fixed hamburger button on mobile.
+- Added sliding sidebar overlay and tap-outside close.
+- Added Escape/resize/nav-item close behavior.
+- Prevented body scrolling while menu is open.
+- Bumped browser/service-worker cache to v4.
