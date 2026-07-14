@@ -141,3 +141,7 @@ hotel-management-system/
 ## Important
 
 This is a working enterprise starter and operational prototype. External payment, SMS, OTA/channel manager, door-lock, and accounting integrations require provider credentials, contracts, and production configuration.
+
+## Guest / Customer Portal
+
+Guests can open `/guest-login.html` and sign in with their Hamilton confirmation number plus the email address or phone number used for the booking. The dashboard shows reservations, room assignment, charges, payments, folio balance, cancellation eligibility, and guest service requests.

@@ -1,4 +1,6 @@
-const CACHE='hamilton-hms-v4';
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['/','/login.html','/app.html','/css/styles.css?v=4','/js/api.js?v=4','/js/app.js?v=4','/js/booking.js?v=4','/js/login.js?v=4','/assets/hamilton-logo-mark.png?v=4','/assets/hamilton-logo-192.png?v=4'])))});
-self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET'||new URL(e.request.url).pathname.startsWith('/api/'))return;e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy));return r}).catch(()=>caches.match(e.request)))});
+'use strict';
+const CACHE='hamilton-hms-v5';
+const CORE=['/','/guest-login.html','/guest.html','/login.html','/app.html','/css/styles.css?v=5','/js/api.js?v=5','/js/guest-login.js?v=5','/js/guest.js?v=5','/assets/hamilton-logo-mark.png?v=5','/assets/hamilton-logo-192.png?v=5'];
+self.addEventListener('install',event=>{self.skipWaiting();event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).catch(()=>{}))});
+self.addEventListener('activate',event=>event.waitUntil(Promise.all([caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))),self.clients.claim()])));
+self.addEventListener('fetch',event=>{if(event.request.method!=='GET')return;const url=new URL(event.request.url);if(url.pathname.startsWith('/api/'))return;event.respondWith(fetch(event.request).then(response=>{const copy=response.clone();caches.open(CACHE).then(cache=>cache.put(event.request,copy)).catch(()=>{});return response}).catch(()=>caches.match(event.request).then(r=>r||caches.match('/'))))});

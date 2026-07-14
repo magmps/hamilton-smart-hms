@@ -1,6 +1,6 @@
 {
   "name": "hamilton-international-hotel-smart-hms",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Smart Hotel Management System web application and REST API with Supabase cloud persistence for Hamilton International Hotel, Dire Dawa, Ethiopia",
   "main": "backend/api-gateway/src/server.js",

@@ -1,0 +1,11 @@
+Hamilton International Hotel Smart HMS — Customer Portal Update v1.2
+
+Added:
+- Guest portal login using confirmation number + booking email/phone
+- Customer dashboard for reservations, room assignment, estimated stay, payments and folio balance
+- Guest service requests routed to the hotel
+- Online cancellation for bookings still in reserved status
+- My Booking links on desktop and mobile public navigation
+- Guest dashboard link after successful website booking
+- Removed public demo staff passwords from the login page
+- Cache version updated to v5

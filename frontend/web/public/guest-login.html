@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102a43">
+  <meta name="description" content="Hamilton International Hotel guest portal login.">
+  <title>Guest Portal | Hamilton International Hotel</title>
+  <link rel="icon" type="image/png" href="/assets/hamilton-logo-192.png?v=5">
+  <link rel="stylesheet" href="/css/styles.css?v=5">
+</head>
+<body>
+  <main class="guest-auth-page">
+    <section class="guest-auth-card">
+      <a href="/" class="brand guest-brand">
+        <img class="brand-logo" width="54" height="54" src="/assets/hamilton-logo-mark.png?v=5" alt="Hamilton International Hotel logo">
+        <span><strong>Hamilton International Hotel</strong><span>Dire Dawa, Ethiopia</span></span>
+      </a>
+      <span class="eyebrow" style="color:var(--teal)">Guest self-service</span>
+      <h1>Manage your stay</h1>
+      <p class="muted">Enter your Hamilton confirmation number and the email address or phone number used for the booking.</p>
+      <form id="guestLoginForm" class="guest-login-form">
+        <div class="field">
+          <label>Confirmation number</label>
+          <input class="input mono" id="confirmationNo" name="confirmation_no" placeholder="HIH-260123" autocomplete="off" required>
+        </div>
+        <div class="field">
+          <label>Email or phone</label>
+          <input class="input" id="guestContact" name="contact" placeholder="name@example.com or +251..." autocomplete="email" required>
+        </div>
+        <button class="btn btn-primary full" id="guestLoginBtn" type="submit">Open guest dashboard</button>
+      </form>
+      <div class="guest-auth-links"><a href="/">← Back to hotel website</a><a href="/login.html">Staff portal</a></div>
+      <p class="help guest-security-note">For your privacy, both booking details must match our records.</p>
+    </section>
+  </main>
+  <div class="toast-wrap" id="toasts"></div>
+  <script src="/js/api.js?v=5"></script>
+  <script src="/js/guest-login.js?v=5"></script>
+</body>
+</html>

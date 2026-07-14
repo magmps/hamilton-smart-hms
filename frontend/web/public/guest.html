@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102a43">
+  <meta name="description" content="Hamilton International Hotel guest dashboard.">
+  <title>My Stay | Hamilton International Hotel</title>
+  <link rel="icon" type="image/png" href="/assets/hamilton-logo-192.png?v=5">
+  <link rel="stylesheet" href="/css/styles.css?v=5">
+</head>
+<body class="guest-dashboard-body">
+  <header class="guest-topbar">
+    <a href="/" class="brand">
+      <img class="brand-logo" width="48" height="48" src="/assets/hamilton-logo-mark.png?v=5" alt="Hamilton International Hotel logo">
+      <span><strong>Hamilton International Hotel</strong><span>Guest Portal</span></span>
+    </a>
+    <div class="guest-top-actions"><div><b id="guestName">Guest</b><span id="guestContactText"></span></div><button class="btn btn-outline btn-sm" id="guestLogoutBtn" type="button">Sign out</button></div>
+  </header>
+
+  <main class="guest-main">
+    <section class="guest-welcome">
+      <div><span class="eyebrow">My Hamilton stay</span><h1 id="welcomeTitle">Welcome</h1><p>View reservations, room details, charges, payments, and service requests.</p></div>
+      <a class="btn btn-primary" href="/#book">Book another stay</a>
+    </section>
+
+    <section class="guest-kpi-grid" id="guestKpis"></section>
+
+    <section class="guest-layout">
+      <div class="guest-column">
+        <div class="card">
+          <div class="card-head"><h3>My reservations</h3><button class="btn btn-soft btn-sm" id="guestRefreshBtn" type="button">Refresh</button></div>
+          <div class="card-body" id="guestReservations"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+      <aside class="guest-column guest-side-column">
+        <div class="card">
+          <div class="card-head"><h3>Request hotel service</h3></div>
+          <div class="card-body">
+            <form id="guestRequestForm" class="guest-request-form">
+              <div class="field"><label>Reservation</label><select class="select" id="requestReservation" required></select></div>
+              <div class="field"><label>Request type</label><select class="select" id="requestType"><option value="general">General assistance</option><option value="housekeeping">Housekeeping</option><option value="maintenance">Maintenance</option><option value="transport">Transport</option><option value="food">Food & beverage</option></select></div>
+              <div class="field"><label>Message</label><textarea class="textarea" id="requestMessage" placeholder="Tell us how we can help..." required></textarea></div>
+              <button class="btn btn-primary full" type="submit">Send request</button>
+            </form>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><h3>Recent requests</h3></div>
+          <div class="card-body" id="guestRequests"><div class="empty">No requests yet.</div></div>
+        </div>
+      </aside>
+    </section>
+  </main>
+  <div class="toast-wrap" id="toasts"></div>
+  <script src="/js/api.js?v=5"></script>
+  <script src="/js/guest.js?v=5"></script>
+</body>
+</html>

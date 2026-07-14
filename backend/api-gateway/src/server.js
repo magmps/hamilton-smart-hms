@@ -68,11 +68,23 @@ function verifyPassword(password, stored) {
   if (!salt || !hash) return false;
   return timingSafeEqualText(passwordHash(password, salt).split(':')[1], hash);
 }
-function signToken(user) {
+function signClaims(claims) {
   const header = encode({ alg: 'HS256', typ: 'JWT' });
-  const payload = encode({ sub: user.id, role: user.role, name: user.name, exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS });
+  const payload = encode({ ...claims, exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS });
   const signature = crypto.createHmac('sha256', JWT_SECRET).update(`${header}.${payload}`).digest('base64url');
   return `${header}.${payload}.${signature}`;
+}
+function signToken(user) {
+  return signClaims({ sub: user.id, role: user.role, name: user.name, kind: 'staff' });
+}
+function signGuestToken(guest, reservation) {
+  return signClaims({
+    sub: guest.id,
+    role: 'guest',
+    kind: 'guest',
+    reservation_id: reservation.id,
+    name: `${guest.first_name} ${guest.last_name}`
+  });
 }
 function verifyToken(token) {
   try {
@@ -260,9 +272,21 @@ function rateLimited(req, limit = 180, windowMs = 60000) {
 function getAuth(req, db) {
   const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
   const payload = verifyToken(token);
-  if (!payload) return null;
+  if (!payload || payload.kind === 'guest') return null;
   const user = db.users.find(u => u.id === payload.sub && u.active);
   return user || null;
+}
+function normalizeContact(value) {
+  const text = safeText(value, 180).toLowerCase();
+  return { text, digits: text.replace(/\D/g, '') };
+}
+function getGuestAuth(req, db) {
+  const token = String(req.headers.authorization || '').replace(/^Bearer\s+/i, '');
+  const payload = verifyToken(token);
+  if (!payload || payload.kind !== 'guest' || payload.role !== 'guest') return null;
+  const guest = db.guests.find(g => g.id === payload.sub);
+  const reservation = db.reservations.find(r => r.id === payload.reservation_id && r.guest_id === payload.sub);
+  return guest && reservation ? { payload, guest, reservation } : null;
 }
 function requireRole(user, roles) { return user && (roles.includes(user.role) || user.role === 'admin'); }
 function routeMatch(pathname, pattern) {
@@ -332,7 +356,7 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, {
       ok: true,
       service: 'Hamilton International Hotel HMS API',
-      version: '1.1.0',
+      version: '1.2.0',
       time: nowIso(),
       property: db.property.name,
       storage: supabaseStore.getStatus()
@@ -372,6 +396,78 @@ async function handleApi(req, res, url) {
     const reservation = { id: uid('res'), property_id: db.property.id, confirmation_no: confirmation, guest_id: guest.id, room_type_id: roomType.id, room_id: null, check_in: safeText(body.check_in, 10), check_out: safeText(body.check_out, 10), adults: Math.max(1, Number(body.adults || 1)), children: Math.max(0, Number(body.children || 0)), source: 'website', status: 'reserved', rate: money(roomType.base_rate), deposit: 0, currency: 'ETB', notes: safeText(body.notes, 1000), created_at: nowIso(), updated_at: nowIso(), version: 1 };
     db.reservations.push(reservation); audit(db, null, 'reservation.public_created', 'reservation', reservation.id, { confirmation }); writeDb(db);
     return sendJson(res, 201, { ok: true, message: 'Reservation request created.', confirmation_no: confirmation, reservation: publicReservation(db, reservation) });
+  }
+
+  if (method === 'POST' && pathname === '/api/v1/guest/auth') {
+    let body; try { body = await readBody(req); } catch (e) { return sendError(res, e.status || 400, e.message); }
+    const confirmation = safeText(body.confirmation_no, 40).toUpperCase();
+    const contact = normalizeContact(body.contact);
+    if (!confirmation || !contact.text) return sendError(res, 422, 'Confirmation number and email or phone are required.', 'validation_error');
+    const reservation = db.reservations.find(r => String(r.confirmation_no || '').toUpperCase() === confirmation);
+    const guest = reservation ? db.guests.find(g => g.id === reservation.guest_id) : null;
+    const guestEmail = normalizeContact(guest?.email).text;
+    const guestPhone = normalizeContact(guest?.phone).digits;
+    const contactMatches = Boolean(guest) && ((guestEmail && contact.text === guestEmail) || (guestPhone && contact.digits && contact.digits === guestPhone));
+    if (!reservation || !guest || !contactMatches) return sendError(res, 401, 'Booking details do not match our records.', 'invalid_guest_credentials');
+    db.guestRequests = Array.isArray(db.guestRequests) ? db.guestRequests : [];
+    audit(db, null, 'guest.portal_login', 'reservation', reservation.id, { confirmation, ip: clientIp(req) }); writeDb(db);
+    return sendJson(res, 200, {
+      ok: true,
+      token: signGuestToken(guest, reservation),
+      expires_in: TOKEN_TTL_SECONDS,
+      guest: { id: guest.id, name: `${guest.first_name} ${guest.last_name}`, email: guest.email, phone: guest.phone },
+      reservation: publicReservation(db, reservation)
+    });
+  }
+
+  if (method === 'GET' && pathname === '/api/v1/guest/dashboard') {
+    const auth = getGuestAuth(req, db);
+    if (!auth) return sendError(res, 401, 'Guest authentication required.', 'unauthorized');
+    const reservations = db.reservations.filter(r => r.guest_id === auth.guest.id).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
+    const items = reservations.map(r => {
+      const folio = db.folios.find(f => f.reservation_id === r.id);
+      return {
+        ...publicReservation(db, r),
+        estimated_total: money(Number(r.rate || 0) * nights(r.check_in, r.check_out)),
+        folio: folio ? { id: folio.id, status: folio.status, lines: folio.lines || [], balance: folioBalance(folio) } : null
+      };
+    });
+    db.guestRequests = Array.isArray(db.guestRequests) ? db.guestRequests : [];
+    return sendJson(res, 200, {
+      ok: true,
+      property: db.property,
+      guest: { id: auth.guest.id, first_name: auth.guest.first_name, last_name: auth.guest.last_name, email: auth.guest.email, phone: auth.guest.phone, preferences: auth.guest.preferences || [] },
+      reservations: items,
+      requests: db.guestRequests.filter(x => x.guest_id === auth.guest.id).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+    });
+  }
+
+  if (method === 'POST' && pathname === '/api/v1/guest/requests') {
+    const auth = getGuestAuth(req, db);
+    if (!auth) return sendError(res, 401, 'Guest authentication required.', 'unauthorized');
+    let body; try { body = await readBody(req); } catch (e) { return sendError(res, e.status || 400, e.message); }
+    const reservationId = safeText(body.reservation_id, 100) || auth.reservation.id;
+    const reservation = db.reservations.find(r => r.id === reservationId && r.guest_id === auth.guest.id);
+    const message = safeText(body.message, 1000);
+    if (!reservation || !message) return sendError(res, 422, 'A valid reservation and request message are required.', 'validation_error');
+    db.guestRequests = Array.isArray(db.guestRequests) ? db.guestRequests : [];
+    const item = { id: uid('grq'), guest_id: auth.guest.id, reservation_id: reservation.id, type: safeText(body.type || 'general', 40), message, status: 'new', created_at: nowIso(), updated_at: nowIso() };
+    db.guestRequests.push(item);
+    db.notifications.push({ id: uid('ntf'), channel: 'internal', recipient: 'frontdesk', message: `Guest request ${reservation.confirmation_no}: ${message}`, status: 'queued', created_by: auth.guest.id, created_at: nowIso() });
+    audit(db, null, 'guest.request_created', 'guest_request', item.id, { reservation_id: reservation.id }); writeDb(db);
+    return sendJson(res, 201, { ok: true, item });
+  }
+
+  let guestParams = routeMatch(pathname, '/api/v1/guest/reservations/:id/cancel');
+  if (guestParams && method === 'POST') {
+    const auth = getGuestAuth(req, db);
+    if (!auth) return sendError(res, 401, 'Guest authentication required.', 'unauthorized');
+    const reservation = db.reservations.find(r => r.id === guestParams.id && r.guest_id === auth.guest.id);
+    if (!reservation) return sendError(res, 404, 'Reservation not found.');
+    if (reservation.status !== 'reserved') return sendError(res, 409, 'Only reserved bookings can be cancelled online.');
+    reservation.status = 'cancelled'; reservation.updated_at = nowIso(); reservation.version = Number(reservation.version || 0) + 1;
+    audit(db, null, 'guest.reservation_cancelled', 'reservation', reservation.id, { confirmation: reservation.confirmation_no }); writeDb(db);
+    return sendJson(res, 200, { ok: true, item: publicReservation(db, reservation) });
   }
 
   const user = getAuth(req, db);
